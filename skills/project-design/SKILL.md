@@ -398,6 +398,23 @@ Stack-specific additions (Go: `.golangci.yml` + optional `goreleaser.yaml`; JS/T
 `.shellcheckrc`). See `references/bootstrap-artifacts.md` and
 `references/ci-cd-templates.md`.
 
+### Artifact generation mode
+
+There are two ways the bootstrap artifacts (LICENSE, `.gitignore`, CI workflows,
+issue/PR templates, etc.) can reach the repo. Ask which the operator wants, or follow a
+recorded preference.
+
+- **Delivered (default):** Phase B generates the `bootstrap/` folder as importable files,
+  delivered via `present_files`. Best when a human operator bootstraps the repo manually
+  before the implementing agent starts.
+- **Specified (implementer-generated):** when the implementing agent is an AI that
+  bootstraps the repo itself — typical in `spec-first`, AI-driven builds — the operator
+  may prefer that Phase B generate ONLY the numbered docs. In that case 05–07 must specify
+  each artifact in enough detail that the implementer generates it in place. This keeps a
+  single source of truth in the numbered docs and avoids handing the operator a separate
+  payload to read, sort, and reconcile. The `bootstrap/` folder is omitted; its contents
+  are specified within 05–07.
+
 ### Delivery
 
 Everything is delivered with `present_files`. Non-negotiable.
@@ -483,6 +500,10 @@ what was found, and ask whether to keep, revise, or rewrite. Do not silently ret
 - **Bootstrap is not design** — `bootstrap/` contains importable files, not
   descriptions. Design decisions belong in 05/06; the artifacts in bootstrap are the
   operationalization.
+- **Artifact generation mode** — bootstrap artifacts are either delivered as an importable
+  `bootstrap/` folder (default) or specified within 05–07 for an AI implementer to generate
+  in place (preferred for `spec-first`, AI-driven builds). See § Phase B — Artifact
+  generation mode.
 - **Result before agreement** — justified criticism serves the product. Mirroring and
   appeasement are not technique. See `brainstorming-techniques.md` § Anti-patterns.
 - **Identity neutrality by default** — see § Identity neutrality in generated documents.
@@ -492,3 +513,4 @@ what was found, and ask whether to keep, revise, or rewrite. Do not silently ret
 - **Track open questions, audit at milestones** — see § Open questions tracking.
   Default to interpreting implicit OK; escalate to explicit ask when consequences are
   material; audit before major deliveries.
+  
