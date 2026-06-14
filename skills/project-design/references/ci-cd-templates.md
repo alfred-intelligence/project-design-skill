@@ -598,6 +598,122 @@ jobs:
 
 ---
 
+## Static site / deploy (render → deploy → smoke)
+
+**Pairs with:** delivery model = deployment, release pattern = Deploy-as-release. The
+artifact `ci.yml` above (lint/test/build) is replaced by render → deploy → smoke. There is
+no `release.yml` — the deploy *is* the release.
+
+### bootstrap/.github/workflows/deploy.yml
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main]          # or a dedicated `deploy` branch fed by a CMS export
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          # render the site (npm run build, hugo, astro build) — a no-op if already static
+          echo "build site into ./public"
+
+      - name: Deploy
+        run: |
+          # ship it (wrangler pages deploy ./public, rsync to host, kubectl apply)
+          echo "deploy ./public to target"
+
+      - name: Smoke check
+        run: |
+          # the gate that turns a deploy into a release
+          set -euo pipefail
+          base="https://example.com"
+          for path in / /a-known-post/ /a-known-category/; do
+            code=$(curl -fsS -o /dev/null -w '%{http_code}' "$base$path")
+            test "$code" = "200" || { echo "FAIL $path -> $code"; exit 1; }
+          done
+          echo "smoke ok"
+```
+
+**Notes:**
+- For a CMS-authored static site the publish pipeline exports to a `deploy` branch; this
+  workflow watches that branch. Backend availability does not gate the public deploy.
+- Rollback = redeploy the previous good commit, or use the host's deployment history.
+
+---
+
+## Infrastructure / IaC (validate → plan → apply)
+
+**Pairs with:** delivery model = infra/config, release pattern = Apply-as-release. `plan`
+runs on PRs (read-only, safe to review); `apply` runs on merge, gated by a protected
+environment with a required reviewer.
+
+### bootstrap/.github/workflows/iac.yml
+
+```yaml
+name: IaC
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write        # to post the plan back onto the PR
+
+concurrency:
+  group: iac-${{ github.ref }}
+  cancel-in-progress: false   # never cancel an in-flight apply
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate + plan
+        run: |
+          # terraform fmt -check && terraform validate && terraform plan -out plan.tfout
+          echo "validate and plan"
+
+  apply:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: prod          # required reviewer configured in repo settings
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply
+        run: |
+          # terraform apply -auto-approve
+          echo "apply"
+      - name: Post-apply check
+        run: |
+          # drift or health check confirming desired state
+          echo "verify"
+```
+
+**Notes:**
+- The `apply` job's `environment: prod` is the approval gate — pair it with a required
+  reviewer (see `bootstrap-artifacts.md` § branch-protection / repo-settings).
+- A remote, locked state backend is assumed; never commit state to the repo.
+
+---
+
 ## Security scanning (shared)
 
 ### bootstrap/.github/workflows/codeql.yml

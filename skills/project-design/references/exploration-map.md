@@ -120,6 +120,20 @@ The default order above suits most projects. Adjust per project type:
 - Data model to tier 1 (state, observations, memory)
 - Distribution to tier 2
 
+**Site / deploy / infra** (the deliverable is a deployed system — a website, service, or
+infrastructure — not a versioned artifact)
+- Deployment topology and runtime/hosting to tier 1 — where it runs and how it ships
+- The content-vs-code boundary to tier 1 when authored content lives apart from code
+  (CMS, static site): who owns which, and how the two stay decoupled
+- The publish/deploy pipeline and the editing/operations model to tier 1 — how a change
+  goes live and how it is verified
+- User flow is replaced by the authoring/operations flow — how content or config gets in
+  and reaches production
+- Security model (the deployed attack surface) and observability (logs/health of the
+  running system) to tier 2
+- Versioning and core-features-in-the-library-sense demote — "release" usually means a
+  verified deploy, not a tagged artifact
+
 ---
 
 ## Exit criterion

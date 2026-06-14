@@ -143,6 +143,11 @@ GitFlow is overkill for most modern projects.
 - Wrap lines at ~72 characters.
 
 **Granularity:**
+- The reason is **traceability first** — a legible per-step history, and in `spec-first`
+  the ability to monitor an autonomous run commit by commit. A changelog tool like
+  release-please is *one consumer* of that granularity when present, not the reason for it;
+  projects with no such tool (deploy-as-release, apply-as-release) keep the same
+  granularity for traceability alone.
 - One commit per logical change, never batch unrelated changes into a single commit.
 - In `iterative` mode this is recommended for a readable git log, but squash-merge at
   PR time is acceptable because each PR is a single logical unit.
@@ -265,7 +270,11 @@ Closes #142
 
 ---
 
-## Release process — two standard patterns
+## Release process — patterns by delivery model
+
+The pattern follows the delivery model (see SKILL.md § Delivery model). Artifact projects
+tag versions — Continuous or Manual SemVer below. Deployment and infra projects ship no
+versioned artifact — Deploy-as-release or Apply-as-release below.
 
 ### Continuous (release-please)
 
@@ -312,6 +321,43 @@ Choose merge strategy accordingly when release-please is in use.
 4. Tag: `git tag -a vX.Y.Z -m "Release X.Y.Z"` + `git push --tags`.
 5. `release.yml` builds and publishes.
 6. Create a GitHub Release with notes from the changelog.
+```
+
+### Deploy-as-release (deployed sites and services)
+
+```markdown
+**For:** delivery model = deployment — a static site, CMS front, or continuously deployed
+service, where there is no versioned artifact to tag.
+
+**Flow:**
+1. A change merges, or content is published from the CMS.
+2. The build/render runs and deploys to the target (Pages, the cluster, the host).
+3. A post-deploy gate — a smoke or health check — decides whether the deploy is accepted.
+4. "Release" = a deploy that passes the gate. No SemVer tag is required; optionally tag a
+   notable state (`milestone/go-live`).
+
+**Versioning:** usually none — the live deployment is the version. Rollback is "promote
+the last known-good deployment", not "check out a tag".
+
+**The smoke gate is the real signal.** A zero exit from the deploy step is not success;
+the post-deploy check that the site or service actually serves is. Define it in 06.
+```
+
+### Apply-as-release (infrastructure / config / IaC)
+
+```markdown
+**For:** delivery model = infra/config — Terraform, Pulumi, cluster manifests, runbooks.
+
+**Flow:**
+1. A change merges.
+2. `plan` (or an equivalent dry-run) runs and is reviewed.
+3. `apply` runs against the environment.
+4. A post-apply check — drift or health — confirms the desired state.
+5. "Release" = an applied change that verifies. Tag per environment if useful
+   (`prod-2026-06-12`), not SemVer.
+
+**Versioning:** environment-tagged or none — the applied state is the version. Rollback is
+re-applying the last known-good revision.
 ```
 
 ---

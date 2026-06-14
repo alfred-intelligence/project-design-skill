@@ -187,7 +187,8 @@ priority answers, stacking of assumptions).
 ### Silent assessment
 
 Most operationalization questions — strictness level, branch strategy, release cadence,
-distribution channels, need for CoC/SECURITY — are *not* asked explicitly in Phase A.
+delivery model, distribution channels, need for CoC/SECURITY — are *not* asked explicitly
+in Phase A.
 They are assessed silently from the brainstorming output and logged internally. At the
 Phase A → Phase B handoff, they are presented as recommendations with motivation, and the
 operator approves or adjusts.
@@ -196,6 +197,25 @@ Assumptions that underpin Phase B are *preserved* in `01-whitepaper.md` under a 
 "Assumptions for Phase B" section, so they survive a session change.
 
 See `references/silent-assessment.md`.
+
+### Delivery model
+
+One silently-assessed property deserves a name because it reshapes Phase B more than the
+others: the **delivery model** — how the project ships and runs.
+
+- **Artifact** — a versioned thing someone installs or imports (library, CLI, binary,
+  package). Release means a tagged version; CI lints, tests, and builds; SemVer and a
+  changelog apply.
+- **Deployment** — a running system someone uses (website, service, infrastructure).
+  Release means a verified deploy, not a tag; CI renders/builds then deploys then runs a
+  smoke or health gate; versioning is usually absent — the live system is the version.
+
+Delivery model and project size together *right-size* the package: they set its weight,
+never its presence. A small deployment project still gets docs, CI, and the routine — at
+the lowest overhead that fits (see § Important principles, Right-sized DevOps). The model
+also selects which release and CI pattern Phase B reaches for; see
+`references/engineering-handbook-templates.md` § Release process and
+`references/ci-cd-templates.md`.
 
 ### Explicit decisions in Phase A (not deferred to silent assessment)
 
@@ -348,7 +368,8 @@ as questions. The operator approves or adjusts. Format per recommendation:
 > "Assumption: [X]. Motivation: [Y]. Approve or adjust?"
 
 Areas typically covered: strictness level (`solo`/`solo+contrib`/`team`), branch
-strategy, release cadence, distribution, CoC/SECURITY needs.
+strategy, release cadence, delivery model (artifact vs deployment), distribution,
+CoC/SECURITY needs.
 
 License is NOT in this step — it was decided explicitly in Phase A.
 
@@ -395,8 +416,9 @@ bootstrap/
 Stack-specific additions (Go: `.golangci.yml` + optional `goreleaser.yaml`; JS/TS:
 `commitlint.config.cjs` + `.eslintrc.json` + `.prettierrc`; Python: `pyproject.toml` +
 `ruff.toml`; Rust: `rustfmt.toml` + `clippy.toml` + optional `cargo-dist.toml`; Shell:
-`.shellcheckrc`). See `references/bootstrap-artifacts.md` and
-`references/ci-cd-templates.md`.
+`.shellcheckrc`; deployment/IaC repos carry a different set — see
+`references/bootstrap-artifacts.md` § Delivery-model additions). See
+`references/bootstrap-artifacts.md` and `references/ci-cd-templates.md`.
 
 ### Artifact generation mode
 

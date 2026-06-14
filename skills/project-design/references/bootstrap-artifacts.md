@@ -37,6 +37,50 @@ Plus stack-specific files in the `bootstrap/` root (see `ci-cd-templates.md`).
 
 ---
 
+## Delivery-model additions
+
+The set above assumes a versioned artifact (library, CLI, binary). Two delivery models
+swap a few files; everything else — LICENSE, README, labels, templates, branch protection,
+CoC/SECURITY — is unchanged.
+
+### Static site / deployment
+
+- **Workflows:** `deploy.yml` (render → deploy → smoke) replaces `ci.yml` + `release.yml`.
+  See `ci-cd-templates.md` § Static site / deploy. There is no release workflow.
+- **.gitignore:** add the generator's output and cache:
+  ```gitignore
+  # Static site
+  public/
+  dist/
+  .cache/
+  ```
+- **dependabot.yml:** keep `github-actions`; add the generator's ecosystem (`npm` for
+  Astro/Eleventy; none for raw static).
+- **README:** drop version badges from Status — a deploy or uptime link fits better.
+- **Branch model:** if a CMS exports to a `deploy` branch, that branch is the deploy
+  trigger and is machine-written, not protected the way `main` is.
+
+### Infrastructure / IaC
+
+- **Workflows:** `iac.yml` (validate → plan → apply) replaces `ci.yml` + `release.yml`.
+  See `ci-cd-templates.md` § Infrastructure / IaC.
+- **Environment gate:** configure a protected `prod` environment with a required reviewer
+  (repo Settings → Environments); the `apply` job runs there.
+- **.gitignore:** never commit state or secrets:
+  ```gitignore
+  # IaC
+  *.tfstate
+  *.tfstate.*
+  .terraform/
+  plan.tfout
+  *.tfvars        # if they hold secrets — commit *.tfvars.example instead
+  ```
+- **dependabot.yml:** add `terraform` (or the relevant provider ecosystem) alongside
+  `github-actions`.
+- **No SemVer:** environment tags (`prod-YYYY-MM-DD`) if any, not version tags.
+
+---
+
 ## Import commands
 
 ### Apply labels
