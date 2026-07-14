@@ -24,6 +24,26 @@ in Phase C. Works for CLI tools, web/SaaS apps, AI agent systems, libraries, and
 
 ---
 
+## Runtime mode-selector (direktor context)
+
+This skill is one of three separate skills direktor self-assesses between at runtime —
+`alfred` (assistance/counsel/memory), `direktor` (orchestration/dispatch), and
+`project-design` (this skill) — kept separate rather than merged into one superskill, so
+the mode-classifier stays additive (see the `direktor` skill § Runtime Mode-Selector).
+`project-design` is the **DESIGN mode**: direktor switches into it for planning/spec/
+bootstrap work and switches out of it once that work is parked or handed off.
+
+Entering or leaving this skill counts as a **new thread boundary** for direktor, which
+re-assesses park-vs-continue there, weighted by importance (refinement leans park;
+refactor/acute/bottleneck work leans continue-now; unclear cases are asked). When a
+design item is parked mid-work, its heading carries a `[design]` mode-tag (e.g.
+`[design] fleet-GitOps epics`) so a later pickup knows to reactivate this skill.
+
+This is a pointer for orchestration context only — it does not change this skill's own
+Phase A/B/C mechanics below.
+
+---
+
 ## Output language policy
 
 This skill file and all `references/*` files are written in English. They are the agent's
